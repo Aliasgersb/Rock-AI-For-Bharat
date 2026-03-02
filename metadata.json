@@ -1,0 +1,7 @@
+{
+  "name": "JanSaarthi",
+  "description": "A citizen-centric government scheme discovery platform.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
