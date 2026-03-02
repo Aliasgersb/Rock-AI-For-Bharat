@@ -51,6 +51,44 @@
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 250ms ease-out both;
+}
+
+.animate-fadeSlideDown {
+  animation: fadeSlideDown 250ms ease-out both;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 250ms ease-out both;
+}
+
+.animate-fadeSlideUp {
+  animation: fadeSlideUp 250ms ease-out both;
+}
+
 /* ── Screen-level page transition ─────────────────────────── */
 
 .screen-enter {

@@ -93,6 +93,19 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
     return `${age} ${t('yearsLabel', lang)}`;
   };
 
+  const formatEducation = (value?: string) => {
+    if (!value) return t('ageNotProvided', lang);
+    switch (value) {
+      case 'none': return t('eduNone', lang);
+      case 'below_10': return t('eduBelow10', lang);
+      case '10th': return t('edu10th', lang);
+      case '12th': return t('edu12th', lang);
+      case 'graduate': return t('eduDiploma', lang);
+      case 'post_graduate': return t('eduPG', lang);
+      default: return value;
+    }
+  };
+
   // --- Sub-components for tabs ---
 
   const SchemeCard: React.FC<{ scheme: Scheme }> = ({ scheme }) => {
@@ -477,7 +490,16 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
     );
 
     const EditProfileModal = () => {
+      const [isExiting, setIsExiting] = useState(false);
       if (!editingField) return null;
+
+      const handleClose = () => {
+        setIsExiting(true);
+        setTimeout(() => {
+          setEditingField(null);
+          setIsExiting(false);
+        }, 250);
+      };
 
       const [tempValue, setTempValue] = useState<any>(
         editingField === 'location'
@@ -646,18 +668,21 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
             );
           case 'location':
             return (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* State Selector */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-600 mb-2">State</label>
-                  <input
-                    type="text"
-                    value={stateSearch}
-                    onChange={(e) => setStateSearch(e.target.value)}
-                    placeholder="Search state..."
-                    className="w-full p-3 mb-2 border-2 border-slate-200 rounded-xl focus:border-primary outline-none text-slate-800 font-medium text-sm"
-                  />
-                  <div className="max-h-40 overflow-y-auto space-y-1 no-scrollbar">
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{t('state', lang) || 'State'}</label>
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={stateSearch}
+                      onChange={(e) => setStateSearch(e.target.value)}
+                      placeholder="Search state..."
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:bg-white outline-none text-slate-800 text-sm transition-colors"
+                    />
+                  </div>
+                  <div className="max-h-36 overflow-y-auto space-y-1 no-scrollbar border border-slate-100 rounded-xl p-1 bg-slate-50/50">
                     {INDIAN_STATES.filter(s => s.toLowerCase().includes(stateSearch.toLowerCase())).map((s) => (
                       <button
                         key={s}
@@ -666,12 +691,13 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
                           setStateSearch('');
                           setDistrictSearch('');
                         }}
-                        className={`w-full text-left p-3 rounded-xl text-sm font-medium transition-colors ${tempValue.state === s
-                          ? 'bg-primary/10 text-primary border border-primary/20'
-                          : 'hover:bg-slate-50 text-slate-700'
+                        className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-between ${tempValue.state === s
+                          ? 'bg-primary text-white shadow-md'
+                          : 'hover:bg-slate-100 text-slate-600'
                           }`}
                       >
                         {s}
+                        {tempValue.state === s && <CheckCircle className="w-4 h-4" />}
                       </button>
                     ))}
                   </div>
@@ -679,26 +705,31 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
 
                 {/* District Selector (only if state is selected) */}
                 {tempValue.state && STATE_DISTRICTS[tempValue.state] && (
-                  <div>
-                    <label className="block text-sm font-bold text-slate-600 mb-2">District</label>
-                    <input
-                      type="text"
-                      value={districtSearch}
-                      onChange={(e) => setDistrictSearch(e.target.value)}
-                      placeholder="Search district..."
-                      className="w-full p-3 mb-2 border-2 border-slate-200 rounded-xl focus:border-primary outline-none text-slate-800 font-medium text-sm"
-                    />
-                    <div className="max-h-40 overflow-y-auto space-y-1 no-scrollbar">
+                  <div className="animate-fadeSlideUp">
+                    <div className="h-px w-full bg-slate-100 my-4"></div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">{t('district', lang) || 'District'}</label>
+                    <div className="relative mb-3">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <input
+                        type="text"
+                        value={districtSearch}
+                        onChange={(e) => setDistrictSearch(e.target.value)}
+                        placeholder="Search district..."
+                        className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:bg-white outline-none text-slate-800 text-sm transition-colors"
+                      />
+                    </div>
+                    <div className="max-h-36 overflow-y-auto space-y-1 no-scrollbar border border-slate-100 rounded-xl p-1 bg-slate-50/50">
                       {STATE_DISTRICTS[tempValue.state].filter(d => d.toLowerCase().includes(districtSearch.toLowerCase())).map((d) => (
                         <button
                           key={d}
                           onClick={() => setTempValue({ ...tempValue, district: d })}
-                          className={`w-full text-left p-3 rounded-xl text-sm font-medium transition-colors ${tempValue.district === d
-                            ? 'bg-primary/10 text-primary border border-primary/20'
-                            : 'hover:bg-slate-50 text-slate-700'
+                          className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-between ${tempValue.district === d
+                            ? 'bg-primary text-white shadow-md'
+                            : 'hover:bg-slate-100 text-slate-600'
                             }`}
                         >
                           {d}
+                          {tempValue.district === d && <CheckCircle className="w-4 h-4" />}
                         </button>
                       ))}
                     </div>
@@ -706,8 +737,9 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
                 )}
 
                 {tempValue.state && (
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <p className="text-xs text-slate-500 font-medium">Selected: <span className="text-slate-800 font-bold">{tempValue.district ? `${tempValue.district}, ${tempValue.state}` : tempValue.state}</span></p>
+                  <div className="p-3 bg-green-50 rounded-xl border border-green-100 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <p className="text-xs text-green-800 font-medium">Selected: <span className="font-bold">{tempValue.district ? `${tempValue.district}, ${tempValue.state}` : tempValue.state}</span></p>
                   </div>
                 )}
               </div>
@@ -764,11 +796,11 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
       };
 
       return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95">
+        <div className={`fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-4 bg-slate-900/50 backdrop-blur-sm ${isExiting ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+          <div className={`bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${isExiting ? 'animate-fadeSlideDown' : 'animate-fadeSlideUp'}`}>
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="font-bold text-lg text-slate-900 capitalize">{t('editPrefix', lang)} {getTitle()}</h3>
-              <button onClick={() => setEditingField(null)} className="p-2 -mr-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
+              <button onClick={handleClose} className="p-2 -mr-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -776,13 +808,16 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
               {renderInput()}
               <div className="mt-8 flex gap-3">
                 <button
-                  onClick={() => setEditingField(null)}
+                  onClick={handleClose}
                   className="flex-1 py-3.5 px-4 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                 >
                   {t('actionCancel', lang)}
                 </button>
                 <button
-                  onClick={handleSave}
+                  onClick={async () => {
+                    await handleSave();
+                    handleClose();
+                  }}
                   className="flex-1 py-3.5 px-4 font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-lg shadow-primary/20 transition-colors"
                 >
                   {t('actionSaveChanges', lang)}
@@ -795,7 +830,16 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
     };
 
     const SignOutConfirmationModal = () => {
+      const [isExiting, setIsExiting] = useState(false);
       if (!showSignOutModal) return null;
+
+      const handleClose = () => {
+        setIsExiting(true);
+        setTimeout(() => {
+          setShowSignOutModal(false);
+          setIsExiting(false);
+        }, 250);
+      };
 
       const handleConfirmSignOut = () => {
         localStorage.removeItem('janSaarthi_profile');
@@ -806,9 +850,9 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
       };
 
       return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowSignOutModal(false)} />
-          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
+        <div className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-6 ${isExiting ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={handleClose} />
+          <div className={`relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden ${isExiting ? 'animate-fadeSlideDown' : 'animate-fadeSlideUp'}`}>
             <div className="p-6 pt-8 pb-4 text-center">
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <LogOut className="w-8 h-8" />
@@ -826,7 +870,7 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
                 {t('signOutConfirmAction', lang)}
               </button>
               <button
-                onClick={() => setShowSignOutModal(false)}
+                onClick={handleClose}
                 className="w-full py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl transition-all active:scale-[0.98]"
               >
                 {t('signOutCancel', lang)}
@@ -838,137 +882,139 @@ export default function DashboardScreen({ onNavigate, userProfile, schemes, setS
     };
 
     return (
-      <div className="flex flex-col h-full tab-enter bg-white">
-        <div className="px-6 py-8 pb-24 overflow-y-auto no-scrollbar">
-          <div className="flex flex-col items-center mb-10">
-            <div className="relative mb-4 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              {userProfile.profileImage ? (
-                <>
-                  <img src={userProfile.profileImage} alt="Profile" className="w-28 h-28 rounded-full border-4 border-slate-50 shadow-xl object-cover" />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      updateProfile({ profileImage: undefined });
-                    }}
-                    className="absolute top-0 right-0 p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full border-2 border-slate-100 shadow-md transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </>
-              ) : (
-                <div className="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center border-4 border-slate-50 shadow-xl text-slate-300">
-                  <User className="w-12 h-12" />
+      <>
+        <div className="flex flex-col h-full bg-white tab-enter">
+          <div className="px-6 py-8 pb-24 overflow-y-auto no-scrollbar">
+            <div className="flex flex-col items-center mb-10">
+              <div className="relative mb-4 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                {userProfile.profileImage ? (
+                  <>
+                    <img src={userProfile.profileImage} alt="Profile" className="w-28 h-28 rounded-full border-4 border-slate-50 shadow-xl object-cover" />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateProfile({ profileImage: undefined });
+                      }}
+                      className="absolute top-0 right-0 p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full border-2 border-slate-100 shadow-md transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center border-4 border-slate-50 shadow-xl text-slate-300">
+                    <User className="w-12 h-12" />
+                  </div>
+                )}
+                <div className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full border-4 border-white shadow-md transition-transform group-hover:scale-110">
+                  <Camera className="w-4 h-4" />
                 </div>
-              )}
-              <div className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full border-4 border-white shadow-md transition-transform group-hover:scale-110">
-                <Camera className="w-4 h-4" />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
+
+              <div
+                className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 px-3 py-1 -mx-3 rounded-lg transition-colors group"
+                onClick={() => setEditingField('name')}
+              >
+                <h2 className="text-2xl font-bold text-slate-900">{userProfile.name}</h2>
+                <Edit3 className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+              </div>
+
+              <div className="flex items-center gap-1 mt-2 bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100 shadow-sm">
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold">{t('verifiedCitizen', lang)}</span>
+              </div>
             </div>
 
-            <div
-              className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 px-3 py-1 -mx-3 rounded-lg transition-colors group"
-              onClick={() => setEditingField('name')}
+            <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 mb-6 flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                <Info className="w-5 h-5" />
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                {t('profileUpdateReminder', lang)}
+              </p>
+            </div>
+
+            <div className="w-full mb-6">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 ml-1">{t('personalDetails', lang)}</h3>
+              <div className="flex flex-col gap-3">
+                <ProfileItem
+                  icon={Globe}
+                  label="App Language"
+                  value={userProfile.language}
+                  field="language"
+                />
+                <ProfileItem
+                  icon={Phone}
+                  label="Mobile Number"
+                  value={userProfile.mobile}
+                  field="mobile"
+                  readOnly
+                />
+                <ProfileItem
+                  icon={MapPin}
+                  label="Location"
+                  value={`${userProfile.district || ''}${userProfile.district && userProfile.state ? ', ' : ''}${userProfile.state || ''}`}
+                  field="location"
+                />
+
+                <ProfileItem
+                  icon={User}
+                  label="Gender"
+                  value={userProfile.gender}
+                  field="gender"
+                />
+                <ProfileItem
+                  icon={User}
+                  label="Age (DOB)"
+                  value={userProfile.dateOfBirth ? `${formatAge(userProfile.dateOfBirth)} (${userProfile.dateOfBirth})` : formatAge(userProfile.dateOfBirth)}
+                  field="dateOfBirth"
+                />
+                <ProfileItem
+                  icon={GraduationCap}
+                  label="Education"
+                  value={formatEducation(userProfile.education)}
+                  field="education"
+                />
+                <ProfileItem
+                  icon={Briefcase}
+                  label="Occupation"
+                  value={userProfile.occupation}
+                  field="occupation"
+                />
+                <ProfileItem
+                  icon={Users}
+                  label="Category"
+                  value={userProfile.category}
+                  field="category"
+                />
+                <ProfileItem
+                  icon={IndianRupee}
+                  label="Income Group"
+                  value={formatIncome(userProfile.income)}
+                  field="income"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowSignOutModal(true)}
+              className="w-full p-4 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-50 transition-colors mt-4 border border-red-100"
             >
-              <h2 className="text-2xl font-bold text-slate-900">{userProfile.name}</h2>
-              <Edit3 className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
-            </div>
-
-            <div className="flex items-center gap-1 mt-2 bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100 shadow-sm">
-              <CheckCircle className="w-3.5 h-3.5" />
-              <span className="text-xs font-bold">{t('verifiedCitizen', lang)}</span>
-            </div>
+              <LogOut className="w-5 h-5" /> {t('actionSignOut', lang)}
+            </button>
           </div>
-
-          <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 mb-6 flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <Info className="w-5 h-5" />
-            </div>
-            <p className="text-sm text-slate-600 leading-relaxed font-medium">
-              {t('profileUpdateReminder', lang)}
-            </p>
-          </div>
-
-          <div className="w-full mb-6">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 ml-1">{t('personalDetails', lang)}</h3>
-            <div className="flex flex-col gap-3">
-              <ProfileItem
-                icon={Globe}
-                label="App Language"
-                value={userProfile.language}
-                field="language"
-              />
-              <ProfileItem
-                icon={Phone}
-                label="Mobile Number"
-                value={userProfile.mobile}
-                field="mobile"
-                readOnly
-              />
-              <ProfileItem
-                icon={MapPin}
-                label="Location"
-                value={`${userProfile.district || ''}${userProfile.district && userProfile.state ? ', ' : ''}${userProfile.state || ''}`}
-                field="location"
-              />
-
-              <ProfileItem
-                icon={User}
-                label="Gender"
-                value={userProfile.gender}
-                field="gender"
-              />
-              <ProfileItem
-                icon={User}
-                label="Age (DOB)"
-                value={userProfile.dateOfBirth ? `${formatAge(userProfile.dateOfBirth)} (${userProfile.dateOfBirth})` : formatAge(userProfile.dateOfBirth)}
-                field="dateOfBirth"
-              />
-              <ProfileItem
-                icon={GraduationCap}
-                label="Education"
-                value={userProfile.education}
-                field="education"
-              />
-              <ProfileItem
-                icon={Briefcase}
-                label="Occupation"
-                value={userProfile.occupation}
-                field="occupation"
-              />
-              <ProfileItem
-                icon={Users}
-                label="Category"
-                value={userProfile.category}
-                field="category"
-              />
-              <ProfileItem
-                icon={IndianRupee}
-                label="Income Group"
-                value={formatIncome(userProfile.income)}
-                field="income"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={() => setShowSignOutModal(true)}
-            className="w-full p-4 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-50 transition-colors mt-4 border border-red-100"
-          >
-            <LogOut className="w-5 h-5" /> {t('actionSignOut', lang)}
-          </button>
         </div>
 
-        {/* Render modals when active */}
+        {/* Render modals OUTSIDE the tab-enter animated div to escape its stacking context */}
         <EditProfileModal />
         <SignOutConfirmationModal />
-      </div>
+      </>
     );
   };
 
