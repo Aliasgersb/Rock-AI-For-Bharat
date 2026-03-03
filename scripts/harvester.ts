@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import fs from 'fs';
+import { TradeOffCategory } from '../types';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -78,7 +79,7 @@ const BASE_SCHEMES = [
         crit: ["Resident of {State}", "Requires medical certificate/calamity proof", "Low income families prioritized"],
         docs: ["Aadhaar Card", "Income Certificate", "Medical Recommendation/Police FIR"],
         url: "https://{StateForUrl}.gov.in/cmrf",
-        rules: { states: ["{State}"], maxIncome: ["low", "mid_low"], ageRanges: ["All"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { states: ["{State}"], maxIncome: ["low", "mid_low"], ageRanges: ["All"] }
     },
     {
         baseId: "state-girl-child",
@@ -94,7 +95,7 @@ const BASE_SCHEMES = [
         crit: ["Girl student resident of {State}", "Passed Class 12th from State Board", "BPL family"],
         docs: ["Aadhaar Card", "12th Marksheet", "Income Certificate", "Bank Passbook"],
         url: "https://education.{StateForUrl}.gov.in/kanya",
-        rules: { states: ["{State}"], maxIncome: ["low"], ageRanges: ["18_35"], gender: ["Female"], education: ["12th Pass"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_SCHOLARSHIPS, rules: { states: ["{State}"], maxIncome: ["low"], ageRanges: ["18_35"], gender: ["Female"], education: ["12th Pass"] }
     },
     {
         baseId: "state-old-age",
@@ -110,7 +111,7 @@ const BASE_SCHEMES = [
         crit: ["Age 60 or above", "Permanent resident of {State}", "No regular source of income/BPL"],
         docs: ["Age Proof (Aadhaar/Voter ID)", "Domicile Certificate", "Bank Account"],
         url: "https://socialwelfare.{StateForUrl}.gov.in/pension",
-        rules: { states: ["{State}"], ageRanges: ["above_60"], maxIncome: ["low"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_PENSIONS, rules: { states: ["{State}"], ageRanges: ["above_60"], maxIncome: ["low"] }
     },
     {
         baseId: "state-farmer-debt",
@@ -126,7 +127,7 @@ const BASE_SCHEMES = [
         crit: ["Small/Marginal farmer in {State}", "Loan taken from cooperative/rural banks"],
         docs: ["Aadhaar Card", "Land Records (Khasra/Khatauni)", "Bank Loan Statement"],
         url: "https://agri.{StateForUrl}.gov.in/karzmafi",
-        rules: { states: ["{State}"], occupations: ["Farmer"], maxIncome: ["low", "mid_low"] }
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT, rules: { states: ["{State}"], occupations: ["Farmer"], maxIncome: ["low", "mid_low"] }
     },
     {
         baseId: "state-unemployment",
@@ -142,7 +143,7 @@ const BASE_SCHEMES = [
         crit: ["Registered with {State} Employment Exchange", "Minimum 12th pass", "Age 21-35 years", "Unemployed"],
         docs: ["Aadhaar Card", "Employment Registration Card", "Education Certificates"],
         url: "https://employment.{StateForUrl}.gov.in",
-        rules: { states: ["{State}"], ageRanges: ["18_35"], education: ["12th Pass", "Graduate / Diploma", "Post Graduate & above"], occupations: ["Unemployed"], maxIncome: ["low"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { states: ["{State}"], ageRanges: ["18_35"], education: ["12th Pass", "Graduate / Diploma", "Post Graduate & above"], occupations: ["Unemployed"], maxIncome: ["low"] }
     },
     {
         baseId: "state-widow-pension",
@@ -158,7 +159,7 @@ const BASE_SCHEMES = [
         crit: ["Widow above 18 years of age", "Resident of {State}", "BPL Category"],
         docs: ["Husband's Death Certificate", "Income Certificate", "Aadhaar Card"],
         url: "https://wcd.{StateForUrl}.gov.in/widow-pension",
-        rules: { states: ["{State}"], gender: ["Female"], maxIncome: ["low"], ageRanges: ["18_35", "36_50", "51_60", "above_60"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_PENSIONS, rules: { states: ["{State}"], gender: ["Female"], maxIncome: ["low"], ageRanges: ["18_35", "36_50", "51_60", "above_60"] }
     },
     {
         baseId: "state-disabled-pension",
@@ -174,7 +175,7 @@ const BASE_SCHEMES = [
         crit: ["Minimum 40% disability", "Resident of {State}", "Low income"],
         docs: ["Disability Certificate (UDID)", "Aadhaar Card", "Bank Account"],
         url: "https://socialjustice.{StateForUrl}.gov.in/divyang",
-        rules: { states: ["{State}"], maxIncome: ["low", "mid_low"], ageRanges: ["All"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_PENSIONS, rules: { states: ["{State}"], maxIncome: ["low", "mid_low"], ageRanges: ["All"] }
     },
     {
         baseId: "state-housing-repair",
@@ -190,7 +191,7 @@ const BASE_SCHEMES = [
         crit: ["Must own a kutcha house", "BPL resident of {State}", "Not availed PM Awas Yojana recently"],
         docs: ["House Photos", "BPL Card", "Aadhaar Card"],
         url: "https://housing.{StateForUrl}.gov.in/marammat",
-        rules: { states: ["{State}"], maxIncome: ["low"], ageRanges: ["All"] }
+        tradeOffType: TradeOffCategory.NO_PUCCA_HOUSE, rules: { states: ["{State}"], maxIncome: ["low"], ageRanges: ["All"] }
     },
     {
         baseId: "state-agriculture-equipment",
@@ -206,7 +207,7 @@ const BASE_SCHEMES = [
         crit: ["Registered farmer in {State}", "Must own agricultural land"],
         docs: ["Land Records", "Aadhaar Card", "Quotation of Equipment"],
         url: "https://agri.{StateForUrl}.gov.in/yantra",
-        rules: { occupations: ["Farmer"], states: ["{State}"], maxIncome: ["low", "mid_low", "high"] }
+        tradeOffType: TradeOffCategory.LAND_OWNERSHIP_REQUIRED, rules: { occupations: ["Farmer"], states: ["{State}"], maxIncome: ["low", "mid_low", "high"] }
     },
     {
         baseId: "state-obc-scholarship",
@@ -222,7 +223,7 @@ const BASE_SCHEMES = [
         crit: ["Belong to OBC category", "Resident of {State}", "Family income below ₹2.5 Lakh/annum"],
         docs: ["OBC Caste Certificate", "Income Certificate", "Previous Year Marksheet"],
         url: "https://obcwelfare.{StateForUrl}.gov.in/scholarship",
-        rules: { categories: ["OBC", "MBC"], education: ["10th Pass", "12th Pass", "Graduate / Diploma"], states: ["{State}"], maxIncome: ["low"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_SCHOLARSHIPS, rules: { categories: ["OBC", "MBC"], education: ["10th Pass", "12th Pass", "Graduate / Diploma"], states: ["{State}"], maxIncome: ["low"] }
     },
     {
         baseId: "state-scst-startup",
@@ -238,7 +239,7 @@ const BASE_SCHEMES = [
         crit: ["SC/ST Category", "Age 18-45 years", "Resident of {State}"],
         docs: ["Caste Certificate", "Project Report", "Aadhaar Card"],
         url: "https://scstwelfare.{StateForUrl}.gov.in/startup",
-        rules: { categories: ["SC", "ST"], ageRanges: ["18_35", "36_50"], occupations: ["Business", "Unemployed"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT, rules: { categories: ["SC", "ST"], ageRanges: ["18_35", "36_50"], occupations: ["Business", "Unemployed"], states: ["{State}"] }
     },
     {
         baseId: "state-marriage-grant",
@@ -254,7 +255,7 @@ const BASE_SCHEMES = [
         crit: ["Bride's age > 18, Groom's age > 21", "Family income below poverty line", "Resident of {State}"],
         docs: ["Age Proof of Bride & Groom", "Income Certificate", "Wedding Card/Proof"],
         url: "https://socialwelfare.{StateForUrl}.gov.in/vivah",
-        rules: { maxIncome: ["low"], states: ["{State}"], ageRanges: ["18_35"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { maxIncome: ["low"], states: ["{State}"], ageRanges: ["18_35"] }
     },
     {
         baseId: "state-animal-husbandry",
@@ -270,7 +271,7 @@ const BASE_SCHEMES = [
         crit: ["Resident of {State}", "Availability of space/fodder for cattle"],
         docs: ["Aadhaar Card", "Bank Loan Sanction Letter", "Land Proof"],
         url: "https://ahd.{StateForUrl}.gov.in/dairy",
-        rules: { occupations: ["Farmer", "Business"], states: ["{State}"], maxIncome: ["low", "mid_low", "high"] }
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT, rules: { occupations: ["Farmer", "Business"], states: ["{State}"], maxIncome: ["low", "mid_low", "high"] }
     },
     {
         baseId: "state-solar-pump",
@@ -286,7 +287,7 @@ const BASE_SCHEMES = [
         crit: ["Farmer owning land in {State}", "Source of water (borewell/surface water) available"],
         docs: ["Land Records", "Aadhaar Card", "Bank Account"],
         url: "https://energy.{StateForUrl}.gov.in/solar-pump",
-        rules: { occupations: ["Farmer"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.LAND_OWNERSHIP_REQUIRED, rules: { occupations: ["Farmer"], states: ["{State}"] }
     },
     {
         baseId: "state-weaver-support",
@@ -302,7 +303,7 @@ const BASE_SCHEMES = [
         crit: ["Registered Weaver in {State}", "Primary income from handloom"],
         docs: ["Weaver ID Card", "Aadhaar", "Bank Account"],
         url: "https://textiles.{StateForUrl}.gov.in/weavers",
-        rules: { occupations: ["Artisan", "Worker", "Business"], states: ["{State}"], maxIncome: ["low", "mid_low"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { occupations: ["Artisan", "Worker", "Business"], states: ["{State}"], maxIncome: ["low", "mid_low"] }
     },
     {
         baseId: "state-sports-scholarship",
@@ -318,7 +319,7 @@ const BASE_SCHEMES = [
         crit: ["Resident of {State}", "Age under 25", "Medal winner in recognized sports"],
         docs: ["Sports Certificates", "Aadhaar Card", "Age Proof"],
         url: "https://sports.{StateForUrl}.gov.in/scholarship",
-        rules: { ageRanges: ["under_18", "18_35"], education: ["10th Pass", "12th Pass", "Student"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_SCHOLARSHIPS, rules: { ageRanges: ["under_18", "18_35"], education: ["10th Pass", "12th Pass", "Student"], states: ["{State}"] }
     },
     {
         baseId: "state-maternity-benefit",
@@ -334,7 +335,7 @@ const BASE_SCHEMES = [
         crit: ["Pregnant/Lactating woman", "Resident of {State}", "Not a regular govt employee"],
         docs: ["MCP Card (Mother Child Protection)", "Aadhaar Card", "Bank Account"],
         url: "https://health.{StateForUrl}.gov.in/maternity",
-        rules: { gender: ["Female"], ageRanges: ["18_35", "36_50"], states: ["{State}"], maxIncome: ["low", "mid_low"] }
+        tradeOffType: TradeOffCategory.GENDER_SPECIFIC, rules: { gender: ["Female"], ageRanges: ["18_35", "36_50"], states: ["{State}"], maxIncome: ["low", "mid_low"] }
     },
     {
         baseId: "state-electric-vehicle",
@@ -350,7 +351,7 @@ const BASE_SCHEMES = [
         crit: ["Purchasing a new EV in {State}", "Registered with {State} RTO"],
         docs: ["Aadhaar", "Vehicle Invoice", "Bank Details"],
         url: "https://transport.{StateForUrl}.gov.in/ev-policy",
-        rules: { states: ["{State}"], occupations: ["All"], ageRanges: ["18_35", "36_50", "51_60", "above_60"], maxIncome: ["All"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { states: ["{State}"], occupations: ["All"], ageRanges: ["18_35", "36_50", "51_60", "above_60"], maxIncome: ["All"] }
     },
     {
         baseId: "state-street-vendor",
@@ -366,7 +367,7 @@ const BASE_SCHEMES = [
         crit: ["Registered Street Vendor in {State}", "Possess Vending Certificate/ID"],
         docs: ["Vendor ID Card/ULB Certificate", "Aadhaar Card"],
         url: "https://urban.{StateForUrl}.gov.in/vendors",
-        rules: { occupations: ["Vendor"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT, rules: { occupations: ["Vendor"], states: ["{State}"] }
     },
     {
         baseId: "state-girl-laptop",
@@ -382,7 +383,7 @@ const BASE_SCHEMES = [
         crit: ["Passed 10th/12th from {State} Board", "Scored > 75% marks (General) or > 65% (Reserved)"],
         docs: ["Marksheet", "Domicile Certificate", "Aadhaar Card"],
         url: "https://education.{StateForUrl}.gov.in/laptop",
-        rules: { education: ["10th Pass", "12th Pass", "Student"], ageRanges: ["under_18", "18_35"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_SCHOLARSHIPS, rules: { education: ["10th Pass", "12th Pass", "Student"], ageRanges: ["under_18", "18_35"], states: ["{State}"] }
     },
     {
         baseId: "state-orphan-care",
@@ -398,7 +399,7 @@ const BASE_SCHEMES = [
         crit: ["Orphan child under 18 years", "Resident of {State}"],
         docs: ["Death Certificates of Parents", "Aadhaar of Child/Guardian"],
         url: "https://wcd.{StateForUrl}.gov.in/orphan",
-        rules: { ageRanges: ["under_18"], states: ["{State}"], maxIncome: ["low", "mid_low", "high"] }
+        tradeOffType: TradeOffCategory.REGULAR_PREMIUM, rules: { ageRanges: ["under_18"], states: ["{State}"], maxIncome: ["low", "mid_low", "high"] }
     },
     {
         baseId: "state-labour-maternity",
@@ -414,7 +415,7 @@ const BASE_SCHEMES = [
         crit: ["Registered female construction worker", "Resident of {State}"],
         docs: ["Labour Card", "Hospital Discharge Summary", "Aadhaar"],
         url: "https://labour.{StateForUrl}.gov.in/maternity",
-        rules: { occupations: ["Worker", "Construction"], gender: ["Female"], states: ["{State}"], maxIncome: ["low"] }
+        tradeOffType: TradeOffCategory.GENDER_SPECIFIC, rules: { occupations: ["Worker", "Construction"], gender: ["Female"], states: ["{State}"], maxIncome: ["low"] }
     },
     {
         baseId: "state-free-electricity",
@@ -430,7 +431,7 @@ const BASE_SCHEMES = [
         crit: ["BPL Card Holder", "Domestic electricity connection in {State}"],
         docs: ["Electricity Bill", "BPL Ration Card"],
         url: "https://power.{StateForUrl}.gov.in/free-units",
-        rules: { maxIncome: ["low"], states: ["{State}"], ageRanges: ["All"], occupations: ["All"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { maxIncome: ["low"], states: ["{State}"], ageRanges: ["All"], occupations: ["All"] }
     },
     {
         baseId: "state-intercaste-marriage",
@@ -446,7 +447,7 @@ const BASE_SCHEMES = [
         crit: ["Legally married couple in {State}", "One spouse must belong to Scheduled Caste (SC)"],
         docs: ["Marriage Certificate", "Caste Certificate of SC spouse", "Joint Bank Account"],
         url: "https://socialjustice.{StateForUrl}.gov.in/intercaste",
-        rules: { states: ["{State}"], categories: ["SC", "General", "OBC"], ageRanges: ["18_35", "36_50"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { states: ["{State}"], categories: ["SC", "General", "OBC"], ageRanges: ["18_35", "36_50"] }
     },
     {
         baseId: "state-self-help-group",
@@ -462,7 +463,7 @@ const BASE_SCHEMES = [
         crit: ["Registered Women SHG in {State}", "Minimum 6 months of active saving/internal lending"],
         docs: ["SHG Registration", "SHG Bank Passbook"],
         url: "https://srlm.{StateForUrl}.gov.in/shg-fund",
-        rules: { gender: ["Female"], states: ["{State}"], ageRanges: ["18_35", "36_50", "51_60"] }
+        tradeOffType: TradeOffCategory.GENDER_SPECIFIC, rules: { gender: ["Female"], states: ["{State}"], ageRanges: ["18_35", "36_50", "51_60"] }
     },
     {
         baseId: "state-coaching-scheme",
@@ -478,7 +479,7 @@ const BASE_SCHEMES = [
         crit: ["SC/ST/OBC/EWS Resident of {State}", "Minimum marks criteria in 10th/12th/Graduation"],
         docs: ["Aadhaar", "Marksheets", "Caste Certificate", "Income Certificate"],
         url: "https://socialjustice.{StateForUrl}.gov.in/coaching",
-        rules: { states: ["{State}"], categories: ["SC", "ST", "OBC", "EWS"], education: ["10th Pass", "12th Pass", "Graduate / Diploma", "Student"], ageRanges: ["under_18", "18_35"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_SCHOLARSHIPS, rules: { states: ["{State}"], categories: ["SC", "ST", "OBC", "EWS"], education: ["10th Pass", "12th Pass", "Graduate / Diploma", "Student"], ageRanges: ["under_18", "18_35"] }
     },
     {
         baseId: "state-artisan-credit",
@@ -494,7 +495,7 @@ const BASE_SCHEMES = [
         crit: ["Registered artisan/craftsman in {State}", "Possess Pehchan Card/Artisan ID"],
         docs: ["Artisan ID", "Aadhaar Card", "Bank Account"],
         url: "https://industries.{StateForUrl}.gov.in/artisan-credit",
-        rules: { occupations: ["Artisan"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT, rules: { occupations: ["Artisan"], states: ["{State}"] }
     },
     {
         baseId: "state-tractor-subsidy",
@@ -510,7 +511,7 @@ const BASE_SCHEMES = [
         crit: ["Farmer in {State}", "Must have minimum 2 acres of land", "Not purchased a tractor in last 7 years"],
         docs: ["Jamabandi/Land Proof", "Aadhaar Card", "Driving License"],
         url: "https://agri.{StateForUrl}.gov.in/tractor",
-        rules: { occupations: ["Farmer"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.LAND_OWNERSHIP_REQUIRED, rules: { occupations: ["Farmer"], states: ["{State}"] }
     },
     {
         baseId: "state-fisheries",
@@ -526,7 +527,7 @@ const BASE_SCHEMES = [
         crit: ["Registered Fisherman in {State}", "Member of Fisheries Cooperative"],
         docs: ["Fisherman ID", "Aadhaar", "Quotation of equipment"],
         url: "https://fisheries.{StateForUrl}.gov.in/subsidy",
-        rules: { occupations: ["Farmer", "Worker", "Business"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { occupations: ["Farmer", "Worker", "Business"], states: ["{State}"] }
     },
     {
         baseId: "state-rickshaw",
@@ -542,7 +543,7 @@ const BASE_SCHEMES = [
         crit: ["Resident of {State}", "Age 18-40", "Valid Driving License"],
         docs: ["Aadhaar", "Driving License", "Income Certificate"],
         url: "https://socialwelfare.{StateForUrl}.gov.in/erickshaw",
-        rules: { states: ["{State}"], ageRanges: ["18_35", "36_50"], occupations: ["Unemployed", "Driver", "Worker"] }
+        tradeOffType: TradeOffCategory.CASTE_CERTIFICATE_REQUIRED, rules: { states: ["{State}"], ageRanges: ["18_35", "36_50"], occupations: ["Unemployed", "Driver", "Worker"] }
     },
     {
         baseId: "state-girl-marriage",
@@ -558,7 +559,7 @@ const BASE_SCHEMES = [
         crit: ["Bride > 18 years", "Resident of {State}", "Mass marriage/registered marriage only"],
         docs: ["Age Proof", "Aadhaar", "Marriage Registration Certificate"],
         url: "https://labour.{StateForUrl}.gov.in/vivah",
-        rules: { gender: ["Female"], ageRanges: ["18_35"], maxIncome: ["low"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.GENDER_SPECIFIC, rules: { gender: ["Female"], ageRanges: ["18_35"], maxIncome: ["low"], states: ["{State}"] }
     },
     {
         baseId: "state-smart-village",
@@ -574,7 +575,7 @@ const BASE_SCHEMES = [
         crit: ["Gram Panchayat in {State}", "Must clear state-level KPIs"],
         docs: ["Panchayat Resolution", "KPI Reports"],
         url: "https://panchayati.{StateForUrl}.gov.in/smartvillage",
-        rules: { states: ["{State}"], occupations: ["All"] }
+        tradeOffType: TradeOffCategory.RURAL_ONLY, rules: { states: ["{State}"], occupations: ["All"] }
     },
     {
         baseId: "state-homemaker-pension",
@@ -590,7 +591,7 @@ const BASE_SCHEMES = [
         crit: ["Female head of family", "Aadhaar linked with Ration Card", "Resident of {State}"],
         docs: ["Aadhaar Card", "Ration Card", "Bank Passbook"],
         url: "https://wcd.{StateForUrl}.gov.in/gruhalakshmi",
-        rules: { gender: ["Female"], occupations: ["Homemaker", "Unemployed"], ageRanges: ["18_35", "36_50", "51_60", "above_60"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.NO_PUCCA_HOUSE, rules: { gender: ["Female"], occupations: ["Homemaker", "Unemployed"], ageRanges: ["18_35", "36_50", "51_60", "above_60"], states: ["{State}"] }
     },
     {
         baseId: "state-tour-guide",
@@ -606,7 +607,7 @@ const BASE_SCHEMES = [
         crit: ["Minimum 12th Pass", "Resident of {State}", "Age 18-35"],
         docs: ["Aadhaar", "Education Certificates", "Character Certificate"],
         url: "https://tourism.{StateForUrl}.gov.in/guide",
-        rules: { ageRanges: ["18_35"], education: ["12th Pass", "Graduate / Diploma", "Post Graduate & above"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT, rules: { ageRanges: ["18_35"], education: ["12th Pass", "Graduate / Diploma", "Post Graduate & above"], states: ["{State}"] }
     },
     {
         baseId: "state-free-travel",
@@ -622,7 +623,7 @@ const BASE_SCHEMES = [
         crit: ["Female passenger", "Resident/Domicile of {State}"],
         docs: ["Aadhaar Card/Voter ID (for age and address proof)"],
         url: "https://transport.{StateForUrl}.gov.in/free-travel",
-        rules: { gender: ["Female"], ageRanges: ["All"], states: ["{State}"] }
+        tradeOffType: TradeOffCategory.GENDER_SPECIFIC, rules: { gender: ["Female"], ageRanges: ["All"], states: ["{State}"] }
     }
 ];
 
@@ -690,6 +691,7 @@ const generateAndUpload = async () => {
                 benefitType: base.type,
                 tags: base.tags,
                 eligible: true, // Frontend uses matchScore anyway
+                tradeOffType: base.tradeOffType,
                 amount: base.amount,
                 ministry: base.min.replace(/{State}/g, state),
                 benefits: base.beni,

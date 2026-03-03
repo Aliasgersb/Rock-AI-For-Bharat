@@ -15,6 +15,25 @@
   }
 }
 
+@keyframes sparkle {
+
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.2) rotate(15deg);
+    opacity: 1;
+    filter: brightness(1.2) drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));
+  }
+}
+
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
 @keyframes fadeSlideUp {
   from {
     opacity: 0;

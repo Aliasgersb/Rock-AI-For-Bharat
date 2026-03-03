@@ -3,6 +3,14 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { UserProfile, Scheme } from "../types";
 import { findMatchingSchemes, MatchResult } from "./matchingEngine";
 
+export interface ActionPlanStep {
+  stepNumber: number;
+  title: string;
+  description: string;
+  icon: string; // e.g., 'FileText', 'Building', 'MapPin'
+  mapQuery?: string | null; // e.g., 'Taluka office in Pune'
+}
+
 // ── AWS Bedrock Client ───────────────────────────────────────────
 const bedrockClient = new BedrockRuntimeClient({
   region: process.env.AWS_REGION || "ap-south-1",
@@ -219,6 +227,11 @@ const SUMMARY_CACHE_PREFIX = "summary_";
 const getCacheKey = (schemeId: string, language: string): string =>
   `${SUMMARY_CACHE_PREFIX}${schemeId}_${language}`;
 
+const ACTION_PLAN_CACHE_PREFIX = "action_plan_";
+
+const getActionPlanCacheKey = (schemeId: string, language: string): string =>
+  `${ACTION_PLAN_CACHE_PREFIX}${schemeId}_${language}`;
+
 /** Read a cached summary for a specific scheme + language. */
 export const getCachedSummary = (schemeId: string, language: string): string | null => {
   try {
@@ -234,6 +247,24 @@ const saveSummaryToCache = (schemeId: string, language: string, summary: string)
     localStorage.setItem(getCacheKey(schemeId, language), summary);
   } catch {
     // Storage full or unavailable — silently ignore
+  }
+};
+
+/** Read cached action plan */
+export const getCachedActionPlan = (schemeId: string, language: string): ActionPlanStep[] | null => {
+  try {
+    const cached = localStorage.getItem(getActionPlanCacheKey(schemeId, language));
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveActionPlanToCache = (schemeId: string, language: string, plan: ActionPlanStep[]): void => {
+  try {
+    localStorage.setItem(getActionPlanCacheKey(schemeId, language), JSON.stringify(plan));
+  } catch {
+    // Silently ignore
   }
 };
 
@@ -323,4 +354,124 @@ export const simplifySchemeDescription = async (scheme: Scheme, language: string
   // ── Both failed ────────────────────────────────────────────────
   console.error("[AI] Both AWS and Gemini failed for summarization.");
   return "⚠️ Could not simplify at this time. Please try again later.";
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  ACTION PLAN GENERATION (Structured JSON)
+// ══════════════════════════════════════════════════════════════════
+
+const buildActionPlanPrompt = (scheme: Scheme, language: string, state?: string, district?: string): string => {
+  const locationContext = state && district
+    ? `The user lives in ${district}, ${state}.`
+    : "The user's location is unknown.";
+
+  return `You are a helpful government assistant for Indian citizens.
+Your task is to provide a step-by-step action plan on how to apply for this government scheme.
+
+IMPORTANT RULES:
+1. Translate all titles and descriptions perfectly into ${language}.
+2. Keep explanations extremely simple and actionable.
+3. You MUST return ONLY a valid JSON array of objects. Do not include any markdown, backticks, or conversational text outside the JSON array.
+4. The JSON must exactly match this structure:
+[
+  {
+    "stepNumber": 1,
+    "title": "Title in ${language}",
+    "description": "Short description in ${language}",
+    "icon": "LucideIconString",
+    "mapQuery": "Google Maps search string or null"
+  }
+]
+5. For the "icon" field, choose ONE from this exact list: ["FileText", "Building", "Smartphone", "MapPin", "ClipboardCheck", "Briefcase", "CheckCircle"].
+6. For "mapQuery": If the step involves visiting a physical office/bank/center, provide a highly specific English search query for Google Maps (e.g., "District Collector Office near ${district || 'me'}"). If no physical visit is needed, set it to explicitly null.
+7. Limit to 3-5 crucial steps.
+
+Context:
+Scheme: ${scheme.title}
+About: ${scheme.description}
+${locationContext}
+
+Return ONLY the JSON array now:`
+};
+
+const parseJsonArrayFromText = (text: string): any[] | null => {
+  try {
+    // Extract JSON array if Claude/Gemini wraps it in markdown backticks
+    const match = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+    // Attempt direct parse
+    return JSON.parse(text);
+  } catch (e) {
+    return null;
+  }
+};
+
+const generateActionPlanWithBedrock = async (scheme: Scheme, language: string, state?: string, district?: string): Promise<ActionPlanStep[]> => {
+  const prompt = buildActionPlanPrompt(scheme, language, state, district);
+
+  const payload = {
+    anthropic_version: "bedrock-2023-05-31",
+    max_tokens: 1000,
+    messages: [
+      { role: "user", content: prompt }
+    ],
+  };
+
+  const command = new InvokeModelCommand({
+    modelId: "apac.anthropic.claude-3-haiku-20240307-v1:0",
+    contentType: "application/json",
+    accept: "application/json",
+    body: JSON.stringify(payload),
+  });
+
+  const response = await bedrockClient.send(command);
+  const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+  const rawText = responseBody.content?.[0]?.text || "";
+
+  const parsed = parseJsonArrayFromText(rawText);
+  if (!parsed || !Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid array format from Bedrock");
+  return parsed as ActionPlanStep[];
+};
+
+const generateActionPlanWithGemini = async (scheme: Scheme, language: string, state?: string, district?: string): Promise<ActionPlanStep[]> => {
+  const prompt = buildActionPlanPrompt(scheme, language, state, district);
+  const result = await geminiModel.generateContent(prompt);
+  const rawText = result.response.text();
+
+  const parsed = parseJsonArrayFromText(rawText);
+  if (!parsed || !Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid array format from Gemini");
+  return parsed as ActionPlanStep[];
+};
+
+export const generateStepByStepPlan = async (scheme: Scheme, language: string, userProfile?: UserProfile): Promise<ActionPlanStep[]> => {
+  const cached = getCachedActionPlan(scheme.id, language);
+  if (cached) {
+    console.log(`[AI] Cache hit for action plan "${scheme.id}" in ${language}`);
+    return cached;
+  }
+
+  const { state, district } = userProfile || {};
+
+  try {
+    console.log("[AI] Trying AWS Bedrock for action plan generation...");
+    const plan = await generateActionPlanWithBedrock(scheme, language, state, district);
+    console.log("[AI] AWS Bedrock action plan generation succeeded.");
+    saveActionPlanToCache(scheme.id, language, plan);
+    return plan;
+  } catch (err) {
+    console.warn("[AI] AWS Bedrock action plan failed:", err);
+  }
+
+  try {
+    console.log("[AI] Falling back to Gemini for action plan generation...");
+    const plan = await generateActionPlanWithGemini(scheme, language, state, district);
+    console.log("[AI] Gemini action plan generation succeeded.");
+    saveActionPlanToCache(scheme.id, language, plan);
+    return plan;
+  } catch (err) {
+    console.error("[AI] Both AWS and Gemini failed for action plan generation:", err);
+    throw new Error("Unable to generate action plan at this time.");
+  }
 };

@@ -1,4 +1,4 @@
-import { Scheme } from '../types';
+import { Scheme, TradeOffCategory } from '../types';
 import { SCHEMES_BATCH_2 } from './schemes_batch2';
 import { SCHEMES_BATCH_3 } from './schemes_batch3';
 import { SCHEMES_BATCH_4 } from './schemes_batch4';
@@ -35,6 +35,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must be a small or marginal farmer", "Must have cultivable land", "Family income below ₹2 lakh per annum", "Must have Aadhaar-linked bank account"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Land Records" }, { icon: "CreditCard", name: "Bank Passbook" }],
         officialWebsite: "https://pmkisan.gov.in",
+        tradeOffType: TradeOffCategory.LAND_OWNERSHIP_REQUIRED,
         eligibilityRules: { occupations: ["Farmer"], maxIncome: ["low", "mid_low"], ageRanges: ["18_35", "36_50", "51_60", "above_60"], states: ["All"] }
     },
     {
@@ -53,6 +54,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Family must be in SECC 2011 database", "No cap on family size or age", "Covers pre-existing diseases from day one"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Ration Card" }, { icon: "Smartphone", name: "Mobile Number" }],
         officialWebsite: "https://pmjay.gov.in",
+        tradeOffType: TradeOffCategory.INCOME_CAP_STRICT,
         eligibilityRules: { maxIncome: ["low", "mid_low"], states: ["All"], ageRanges: ["All"] }
     },
     {
@@ -71,6 +73,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must not own a pucca house", "Annual household income below ₹3 lakh (EWS)", "Preference to SC/ST, minorities, disabled"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Income Certificate" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://pmaymis.gov.in",
+        tradeOffType: TradeOffCategory.NO_PUCCA_HOUSE,
         eligibilityRules: { maxIncome: ["low", "mid_low"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60", "above_60"] }
     },
     {
@@ -89,6 +92,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Women applicant from BPL household", "No existing LPG connection in the household", "Age must be 18 years or above"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "BPL Certificate" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://www.pmujjwalayojana.com",
+        tradeOffType: TradeOffCategory.GENDER_SPECIFIC,
         eligibilityRules: { maxIncome: ["low"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60", "above_60"], gender: ["Female"] }
     },
     {
@@ -107,6 +111,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must be a non-farm small/micro enterprise", "Business should not already be funded by a bank", "Indian citizen with a viable business plan"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Business Plan" }, { icon: "CreditCard", name: "Bank Statement" }],
         officialWebsite: "https://www.mudra.org.in",
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT,
         eligibilityRules: { occupations: ["Business", "Vendor", "Artisan", "GigWorker"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60"] }
     },
     {
@@ -125,6 +130,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Girl child must be below 10 years of age", "Only 2 accounts per family allowed", "Minimum deposit of ₹250 per year"],
         documents: [{ icon: "Fingerprint", name: "Birth Certificate" }, { icon: "FileText", name: "Parent's ID Proof" }, { icon: "CreditCard", name: "Address Proof" }],
         officialWebsite: "https://www.india.gov.in/sukanya-samriddhi-yojna",
+        tradeOffType: TradeOffCategory.LOCK_IN_PERIOD,
         eligibilityRules: { ageRanges: ["under_18"], states: ["All"] }
     },
     {
@@ -143,6 +149,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must be engaged in one of 18 traditional trades", "Self-employed, working with hands and tools", "Not received similar benefits in last 5 years"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "Smartphone", name: "Mobile Number" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://pmvishwakarma.gov.in",
+        tradeOffType: TradeOffCategory.MANDATORY_TRAINING,
         eligibilityRules: { occupations: ["Artisan", "Construction", "Worker"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60"] }
     },
     {
@@ -161,6 +168,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must be a member of a rural household", "Willing to do unskilled manual work", "Must apply for a Job Card at Gram Panchayat"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Job Card" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://nrega.nic.in",
+        tradeOffType: TradeOffCategory.MANUAL_LABOR,
         eligibilityRules: { occupations: ["Worker", "Farmer", "Unemployed", "Construction"], maxIncome: ["low", "mid_low"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60", "above_60"] }
     },
     {
@@ -179,6 +187,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Any Indian citizen above 10 years", "Must not have an existing bank account", "One account per household"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "Smartphone", name: "Mobile Number" }],
         officialWebsite: "https://pmjdy.gov.in",
+        tradeOffType: TradeOffCategory.ONE_PER_FAMILY,
         eligibilityRules: { states: ["All"], ageRanges: ["All"], maxIncome: ["low", "mid_low", "mid_high"] }
     },
     {
@@ -197,6 +206,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must be SC/ST or a woman", "Enterprise must be greenfield (new)", "Age above 18 years"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Caste Certificate/ID" }, { icon: "FileText", name: "Business Plan" }],
         officialWebsite: "https://www.standupmitra.in",
+        tradeOffType: TradeOffCategory.LOAN_REPAYMENT,
         eligibilityRules: { categories: ["SC", "ST"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60"] }
     },
     {
@@ -215,7 +225,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Age between 18-40 years", "Must have a savings bank account", "Must not be an income tax payer (for co-contribution)"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "CreditCard", name: "Bank Account" }, { icon: "Smartphone", name: "Mobile Number" }],
         officialWebsite: "https://www.npscra.nsdl.co.in/scheme-details.php",
-        eligibilityRules: { ageRanges: ["18_35", "36_50"], states: ["All"], maxIncome: ["low", "mid_low", "mid_high"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_PENSIONS, eligibilityRules: { ageRanges: ["18_35", "36_50"], states: ["All"], maxIncome: ["low", "mid_low", "mid_high"] }
     },
     {
         id: "pm-suraksha-bima",
@@ -233,7 +243,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Age between 18-70 years", "Must have Aadhaar-linked bank account", "Auto-debit consent for ₹20/year"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://financialservices.gov.in/insurance-divisions/Government-Sponsored-Socially-Oriented-Insurance-Schemes/Pradhan-Mantri-Suraksha-Bima-Yojana(PMSBY)",
-        eligibilityRules: { ageRanges: ["18_35", "36_50", "51_60", "above_60"], states: ["All"] }
+        tradeOffType: TradeOffCategory.REGULAR_PREMIUM, eligibilityRules: { ageRanges: ["18_35", "36_50", "51_60", "above_60"], states: ["All"] }
     },
     {
         id: "national-scholarship",
@@ -251,6 +261,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must be a student enrolled in recognized institution", "Must belong to SC/ST/OBC/Minority/EWS category", "Family income below specified threshold"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Income Certificate" }, { icon: "FileText", name: "Caste Certificate" }],
         officialWebsite: "https://scholarships.gov.in",
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_SCHOLARSHIPS,
         eligibilityRules: { occupations: ["Student"], categories: ["SC", "ST", "OBC", "EWS"], states: ["All"], ageRanges: ["under_18", "18_35"], education: ["10th", "12th", "graduate", "post_graduate"] }
     },
     {
@@ -269,7 +280,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Age between 18-50 years", "Must have Aadhaar-linked bank account"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://financialservices.gov.in/insurance-divisions/Government-Sponsored-Socially-Oriented-Insurance-Schemes/Pradhan-Mantri-Jeevan-Jyoti-Bima-Yojana(PMJJBY)",
-        eligibilityRules: { ageRanges: ["18_35", "36_50"], states: ["All"] }
+        tradeOffType: TradeOffCategory.REGULAR_PREMIUM, eligibilityRules: { ageRanges: ["18_35", "36_50"], states: ["All"] }
     },
     {
         id: "skill-india",
@@ -287,7 +298,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Indian citizen aged 15-45", "Class 10 or above (for most courses)", "Not currently enrolled in formal education"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Education Certificate" }],
         officialWebsite: "https://www.pmkvyofficial.org",
-        eligibilityRules: { occupations: ["Unemployed", "Worker", "GigWorker", "Student"], ageRanges: ["under_18", "18_35", "36_50"], states: ["All"], education: ["none", "below_10", "10th", "12th"] }
+        tradeOffType: TradeOffCategory.MANDATORY_TRAINING, eligibilityRules: { occupations: ["Unemployed", "Worker", "GigWorker", "Student"], ageRanges: ["under_18", "18_35", "36_50"], states: ["All"], education: ["none", "below_10", "10th", "12th"] }
     },
     {
         id: "old-age-pension",
@@ -305,7 +316,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Age 60 years or above", "Must belong to BPL family", "Must not receive any other pension"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Age Proof" }, { icon: "FileText", name: "BPL Certificate" }],
         officialWebsite: "https://nsap.nic.in",
-        eligibilityRules: { ageRanges: ["above_60"], maxIncome: ["low"], states: ["All"] }
+        tradeOffType: TradeOffCategory.EXCLUDES_OTHER_PENSIONS, eligibilityRules: { ageRanges: ["above_60"], maxIncome: ["low"], states: ["All"] }
     },
     {
         id: "fasal-bima",
@@ -323,7 +334,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Must be a farmer (landowner or tenant)", "Crop must be notified under the scheme", "Must enroll before sowing season deadline"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "FileText", name: "Land Records" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://pmfby.gov.in",
-        eligibilityRules: { occupations: ["Farmer"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60", "above_60"] }
+        tradeOffType: TradeOffCategory.REGULAR_PREMIUM, eligibilityRules: { occupations: ["Farmer"], states: ["All"], ageRanges: ["18_35", "36_50", "51_60", "above_60"] }
     },
     {
         id: "e-shram",
@@ -341,7 +352,7 @@ export const SCHEMES_DATABASE: SchemeEntry[] = [
         eligibilityCriteria: ["Age between 16-59 years", "Must be an unorganized sector worker", "Must not be a member of EPFO or ESIC"],
         documents: [{ icon: "Fingerprint", name: "Aadhaar Card" }, { icon: "Smartphone", name: "Mobile Number" }, { icon: "CreditCard", name: "Bank Account" }],
         officialWebsite: "https://eshram.gov.in",
-        eligibilityRules: { occupations: ["Worker", "Construction", "Driver", "Vendor", "GigWorker", "Homemaker", "Artisan"], ageRanges: ["under_18", "18_35", "36_50", "51_60"], states: ["All"] }
+        tradeOffType: TradeOffCategory.REGULAR_PREMIUM, eligibilityRules: { occupations: ["Worker", "Construction", "Driver", "Vendor", "GigWorker", "Homemaker", "Artisan"], ageRanges: ["under_18", "18_35", "36_50", "51_60"], states: ["All"] }
     }
 ];
 

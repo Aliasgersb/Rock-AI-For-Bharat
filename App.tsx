@@ -10,6 +10,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import SchemeDetailsScreen from './screens/SchemeDetailsScreen';
 import CompareScreen from './screens/CompareScreen';
 import HistoryScreen from './screens/HistoryScreen';
+import ActionPlanScreen from './screens/ActionPlanScreen';
 
 export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -24,7 +25,17 @@ export default function App() {
   const [schemes, setSchemes] = useState<Scheme[]>(() => {
     try {
       const saved = localStorage.getItem('janSaarthi_schemes');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Cache migration: if stored schemes lack tradeOffType, clear the stale cache
+        // so the user gets fresh data (with Reality Check info) on next search.
+        if (Array.isArray(parsed) && parsed.length > 0 && !parsed[0].tradeOffType) {
+          localStorage.removeItem('janSaarthi_schemes');
+          return [];
+        }
+        return parsed;
+      }
+      return [];
     } catch (e) {
       return [];
     }
@@ -113,6 +124,8 @@ export default function App() {
         return <CompareScreen onNavigate={navigate} schemes={schemes} userProfile={userProfile} />;
       case ScreenName.HISTORY:
         return <HistoryScreen onNavigate={navigate} schemes={schemes} userProfile={userProfile} setSelectedScheme={setSelectedScheme} />;
+      case ScreenName.ACTION_PLAN:
+        return <ActionPlanScreen onNavigate={navigate} scheme={selectedScheme} userProfile={userProfile} />;
       default:
         return <WelcomeScreen onNavigate={navigate} updateProfile={updateProfile} />;
     }

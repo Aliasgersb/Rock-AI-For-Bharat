@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScreenName, Scheme, UserProfile } from '../types';
-import { ArrowLeft, Share2, CheckCircle, ShieldCheck, IndianRupee, Wallet, Landmark, FileText, Smartphone, Fingerprint, ArrowRight, HeartHandshake, GraduationCap, Briefcase, MapPin, CreditCard, Building, Bookmark } from 'lucide-react';
+import { ArrowLeft, Share2, CheckCircle, ShieldCheck, IndianRupee, Wallet, Landmark, FileText, Smartphone, Fingerprint, ArrowRight, HeartHandshake, GraduationCap, Briefcase, MapPin, CreditCard, Building, Bookmark, AlertTriangle, Sparkles } from 'lucide-react';
 
 import { t } from '../translations';
 import { simplifySchemeDescription, getCachedSummary } from '../services/ai';
@@ -121,6 +121,23 @@ export default function SchemeDetailsScreen({ onNavigate, scheme, userProfile, u
           </div>
         </section>
 
+        {/* Reality Check */}
+        {scheme.tradeOffType && (
+          <section className="px-4 py-2 animate-fadeSlideUp stagger-1">
+            <h3 className="text-lg font-bold text-slate-900 mb-3">{t('realityCheckTitle', lang) || "Reality Check"}</h3>
+            <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 shadow-sm flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-600 border border-amber-200 shadow-sm">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-900 leading-relaxed">
+                  {t(`tradeOff_${scheme.tradeOffType}`, lang)}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Benefits */}
         <section className="px-4 py-2 animate-fadeSlideUp stagger-2">
           <h3 className="text-lg font-bold text-slate-900 mb-3">{t('benefits', lang)}</h3>
@@ -132,8 +149,8 @@ export default function SchemeDetailsScreen({ onNavigate, scheme, userProfile, u
                     {getIcon(benefit.icon, IndianRupee)}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm">{benefit.title}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">{benefit.description}</p>
+                    <h4 className="font-bold text-slate-900 text-sm">{t(benefit.title, lang)}</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">{t(benefit.description, lang)}</p>
                   </div>
                 </div>
               ))
@@ -158,7 +175,7 @@ export default function SchemeDetailsScreen({ onNavigate, scheme, userProfile, u
                 scheme.eligibilityCriteria.map((criteria, idx) => (
                   <li key={idx} className="flex gap-3 items-start">
                     <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-slate-600 leading-snug">{criteria}</span>
+                    <span className="text-sm text-slate-600 leading-snug">{t(criteria, lang)}</span>
                   </li>
                 ))
               ) : (
@@ -181,7 +198,7 @@ export default function SchemeDetailsScreen({ onNavigate, scheme, userProfile, u
                 return (
                   <div key={idx} className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center justify-center gap-2 text-center">
                     <Icon className="w-6 h-6 text-primary" />
-                    <span className="text-xs font-semibold text-slate-700">{doc.name}</span>
+                    <span className="text-xs font-semibold text-slate-700">{t(doc.name, lang)}</span>
                   </div>
                 );
               })
@@ -203,10 +220,16 @@ export default function SchemeDetailsScreen({ onNavigate, scheme, userProfile, u
 
       {/* Footer CTA */}
       <div className="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-slate-100 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-        <div className="flex justify-center">
+        <div className="flex gap-3">
+          <button
+            onClick={() => onNavigate(ScreenName.ACTION_PLAN)}
+            className="flex-1 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-bold border border-indigo-100 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:bg-indigo-100"
+          >
+            <Sparkles className="w-4 h-4" /> {t('stepByStepGuide', lang) || 'Guide'}
+          </button>
           <button onClick={() => {
             if (scheme.officialWebsite && scheme.officialWebsite !== 'Not available') window.open(scheme.officialWebsite, '_blank');
-          }} className={`px-8 py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform ${!scheme.officialWebsite || scheme.officialWebsite === 'Not available' ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          }} className={`flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform ${!scheme.officialWebsite || scheme.officialWebsite === 'Not available' ? 'opacity-50 cursor-not-allowed' : ''}`}>
             {t('applyNow', lang)} <ArrowRight className="w-4 h-4" />
           </button>
         </div>
