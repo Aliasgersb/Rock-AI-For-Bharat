@@ -1,5 +1,7 @@
 # JanSaarthi - Rock-AI-For-Bharat
 
+🔗 **Live App**: [https://main.d192fxj8mr7fzh.amplifyapp.com](https://main.d192fxj8mr7fzh.amplifyapp.com)
+
 JanSaarthi is an AI-powered platform that helps Indian citizens discover government schemes they are eligible for. It combines rule-based matching for accuracy with AI to extract details from ID scans and simplify complex scheme information into clear, easy-to-understand explanations in local languages.
 
 ## Features
@@ -19,7 +21,6 @@ JanSaarthi is an AI-powered platform that helps Indian citizens discover governm
 - **Styling**: Custom CSS with Tailwind-like utilities
 - **Icons**: Lucide React
 - **AI Services**: 
-  - Google Generative AI (Gemini)
   - AWS Bedrock Runtime
 - **Database**: AWS DynamoDB
 - **Deployment**: AWS Amplify
@@ -77,7 +78,7 @@ JanSaarthi is an AI-powered platform that helps Indian citizens discover governm
 3. Set up environment variables:
    Create a `.env.local` file in the root directory with the following:
    ```
-   VITE_GEMINI_API_KEY=your_gemini_api_key
+   
    VITE_AWS_REGION=your_aws_region
    VITE_AWS_ACCESS_KEY_ID=your_aws_access_key
    VITE_AWS_SECRET_ACCESS_KEY=your_aws_secret_key
@@ -146,14 +147,6 @@ The project includes AWS Lambda functions for backend processing:
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
-
-[Add your license information here]
-
-## Support
-
-For support, please [add contact information or issue tracker link]
 
 ---
 
-View the app in AI Studio: https://ai.studio/apps/drive/10wC6gRtribhD9nVS3Z942_8tealoIb69
